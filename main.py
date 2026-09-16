@@ -70,7 +70,12 @@ def main():
     tg_app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 
     # 用事件循环同时跑 Web 服务和 Telegram 轮询
-    loop = asyncio.get_event_loop()
+        try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
     loop.run_until_complete(start_web_server())
     
     logger.info("机器人启动成功，开始监听...")
