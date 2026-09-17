@@ -16,8 +16,8 @@ from aiohttp import web
 # ==============================
 # Telegram Bot Token
 # ==============================
-TELEGRAM_TOKEN = 8623759795:AAGprMw-qc28Uz80FEz8TadNbpFPmqZOj5w
-
+TELEGRAM_TOKEN = "8623759795:AAGprMw-qc28Uz80FEz8TadNbpFPmqZOj5w
+"
 
 
 # ==============================
