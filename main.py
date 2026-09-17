@@ -24,7 +24,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # 普通群消息
     if update.message:
         user_text = update.message.text or ""
-
         chat_id = update.effective_chat.id if update.effective_chat else "未知"
 
         logger.info(f"📩 收到普通消息")
@@ -40,7 +39,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # 频道消息
     elif update.channel_post:
         user_text = update.channel_post.text or ""
-
         logger.info("📢 收到 Channel Post")
         logger.info(f"消息内容: {user_text}")
 
@@ -66,14 +64,9 @@ async def start_web_server():
     await runner.setup()
 
     port = int(os.getenv("PORT", 10000))
-
-    site = web.TCPSite(
-        runner,
-        '0.0.0.0',
-        port
-    )
-
+    site = web.TCPSite(runner, '0.0.0.0', port)
     await site.start()
+    logger.info(f"🌐 网页健康检查服务已在端口 {port} 启动")
 
 
 def main():
@@ -95,20 +88,19 @@ def main():
         )
     )
 
+    # 1. 先在后台启动 Web 服务器（满足 Render 的 Web Service 端口监听要求）
     try:
         loop = asyncio.get_event_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
-    loop.run_until_complete(
-        start_web_server()
-    )
+    loop.create_task(start_web_server())
 
+    # 2. 启动 Telegram 机器人轮询（它会接管主循环并一直运行）
     logger.info("🤖 机器人启动成功，开始监听...")
-
     tg_app.run_polling()
 
 
 if __name__ == "__main__":
-    main()()
+    main()
