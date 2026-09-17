@@ -1,32 +1,54 @@
 import os
 import logging
-from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
 import asyncio
+
+from telegram import Update
+from telegram.ext import (
+    ApplicationBuilder,
+    ContextTypes,
+    MessageHandler,
+    filters,
+)
+
 from aiohttp import web
 
-# 配置日志
+
+# ==============================
+# Telegram Bot Token
+# ==============================
+TELEGRAM_TOKEN = 8623759795:AAGprMw-qc28Uz80FEz8TadNbpFPmqZOj5w
+
+
+
+# ==============================
+# 日志
+# ==============================
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO
 )
+
 logger = logging.getLogger(__name__)
 
-# Telegram Bot Token
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
+# ==============================
+# 接收 Telegram 消息
+# ==============================
+async def handle_message(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # 先把完整 Update 打印出来，方便确认 Telegram 到底发来了什么
     logger.info("========== 收到 UPDATE ==========")
     logger.info(str(update))
 
-    # 普通群消息
+    # 普通消息
     if update.message:
+
         user_text = update.message.text or ""
         chat_id = update.effective_chat.id if update.effective_chat else "未知"
 
-        logger.info(f"📩 收到普通消息")
+        logger.info("📩 收到普通消息")
         logger.info(f"群 ID: {chat_id}")
         logger.info(f"消息内容: {user_text}")
 
@@ -38,40 +60,66 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # 频道消息
     elif update.channel_post:
+
         user_text = update.channel_post.text or ""
-        logger.info("📢 收到 Channel Post")
+
+        logger.info("📢 收到频道消息")
         logger.info(f"消息内容: {user_text}")
 
     # 其他类型
     else:
+
         logger.info("⚠️ 收到其他类型的 Update")
 
     logger.info("================================")
 
 
+# ==============================
 # Render 健康检查
+# ==============================
 async def handle_web(request):
-    return web.Response(text="Bot is running!")
+
+    return web.Response(
+        text="Bot is running!"
+    )
 
 
 async def start_web_server():
+
     app = web.Application()
+
     app.add_routes([
-        web.get('/', handle_web)
+        web.get("/", handle_web)
     ])
 
     runner = web.AppRunner(app)
+
     await runner.setup()
 
-    port = int(os.getenv("PORT", 10000))
-    site = web.TCPSite(runner, '0.0.0.0', port)
+    port = int(
+        os.getenv("PORT", "10000")
+    )
+
+    site = web.TCPSite(
+        runner,
+        "0.0.0.0",
+        port
+    )
+
     await site.start()
-    logger.info(f"🌐 网页健康检查服务已在端口 {port} 启动")
 
 
+# ==============================
+# 主程序
+# ==============================
 def main():
+
     if not TELEGRAM_TOKEN:
-        logger.error("❌ 未找到 TELEGRAM_TOKEN 环境变量")
+
+        logger.error(
+            "❌ 没有找到 TELEGRAM_TOKEN"
+        )
+
         return
 
     tg_app = (
@@ -80,7 +128,7 @@ def main():
         .build()
     )
 
-    # 接收所有类型的 Update
+    # 接收所有类型的消息
     tg_app.add_handler(
         MessageHandler(
             filters.ALL,
@@ -88,19 +136,32 @@ def main():
         )
     )
 
-    # 1. 先在后台启动 Web 服务器（满足 Render 的 Web Service 端口监听要求）
+    # 启动 Render Web 服务
     try:
+
         loop = asyncio.get_event_loop()
+
     except RuntimeError:
+
         loop = asyncio.new_event_loop()
+
         asyncio.set_event_loop(loop)
 
-    loop.create_task(start_web_server())
+    loop.run_until_complete(
+        start_web_server()
+    )
 
-    # 2. 启动 Telegram 机器人轮询（它会接管主循环并一直运行）
-    logger.info("🤖 机器人启动成功，开始监听...")
+    logger.info(
+        "🤖 机器人启动成功，开始监听..."
+    )
+
+    # Telegram 轮询
     tg_app.run_polling()
 
 
+# ==============================
+# 启动
+# ==============================
 if __name__ == "__main__":
+
     main()
