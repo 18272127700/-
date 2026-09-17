@@ -14,10 +14,9 @@ from aiohttp import web
 
 
 # ==============================
-# Telegram Bot Token
+# Telegram Bot Token (从环境变量安全读取)
 # ==============================
-TELEGRAM_TOKEN = "8623759795:AAGprMw-qc28Uz80FEz8TadNbpFPmqZOj5w
-"
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 
 # ==============================
@@ -117,7 +116,7 @@ def main():
     if not TELEGRAM_TOKEN:
 
         logger.error(
-            "❌ 没有找到 TELEGRAM_TOKEN"
+            "❌ 没有找到 TELEGRAM_TOKEN，请检查 Render 环境变量配置"
         )
 
         return
