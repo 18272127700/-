@@ -20,12 +20,12 @@ from aiohttp import web
 # ==============================
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
-# 邮箱配置（固定指定您的 QQ 邮箱和接收地址）
-MAIL_HOST = "smtp.qq.com"
+# 邮箱配置（使用 Gmail 中转，完美避开 Render 的网络限制）
+MAIL_HOST = "smtp.gmail.com"
 MAIL_PORT = 465
-MAIL_SENDER = "1063379810@qq.com"
-MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")  # 在 Render 后台填 Miiednkorpwdbdga
-MAIL_RECEIVER = "1063379810@qq.com"
+MAIL_SENDER = "您的谷歌邮箱@gmail.com"  # <--- 请在这里改成您自己的 Gmail 邮箱地址
+MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")  # 在 Render 后台填刚才生成的 16 位应用专用密码
+MAIL_RECEIVER = "1063379810@qq.com"  # 接收邮件的 QQ 邮箱
 
 # ==============================
 # 日志
@@ -55,7 +55,7 @@ def send_email(subject, content):
         server.login(MAIL_SENDER, MAIL_PASSWORD)
         server.sendmail(MAIL_SENDER, [MAIL_RECEIVER], message.as_string())
         server.quit()
-        logger.info("📧 邮件成功发送到 1063379810@qq.com！")
+        logger.info("📧 邮件通过 Gmail 成功发送到 1063379810@qq.com！")
     except Exception as e:
         logger.error(f"❌ 邮件发送失败: {e}")
 
@@ -84,7 +84,7 @@ async def handle_message(
         if user_text:
             text_to_send = f"收到来自 Telegram (群ID: {chat_id}) 的消息:\n\n{user_text}"
             await update.message.reply_text(
-                f"收到你的消息并已转发到邮箱: {user_text}"
+                f"收到你的消息并已通过 Gmail 转发到邮箱: {user_text}"
             )
 
     # 频道消息
@@ -175,7 +175,7 @@ def main():
     )
 
     logger.info(
-        "🤖 机器人启动成功，开始监听并准备转发邮件..."
+        "🤖 机器人启动成功，开始监听并准备通过 Gmail 转发邮件..."
     )
 
     # Telegram 轮询
@@ -186,4 +186,3 @@ def main():
 # ==============================
 if __name__ == "__main__":
     main()
-
