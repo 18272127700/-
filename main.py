@@ -20,12 +20,12 @@ from aiohttp import web
 # ==============================
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
-# 邮箱配置（使用 Gmail 中转，完美避开 Render 的网络限制）
+# 邮箱配置（全部改用环境变量读取，代码里不用写死任何账号密码）
 MAIL_HOST = "smtp.gmail.com"
 MAIL_PORT = 465
-MAIL_SENDER = "您的谷歌邮箱@gmail.com"  # <--- 请在这里改成您自己的 Gmail 邮箱地址
-MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")  # 在 Render 后台填刚才生成的 16 位应用专用密码
-MAIL_RECEIVER = "1063379810@qq.com"  # 接收邮件的 QQ 邮箱
+MAIL_SENDER = os.getenv("MAIL_SENDER")        # 在 Render 后台填您的谷歌邮箱
+MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")    # 在 Render 后台填 16 位应用专用密码
+MAIL_RECEIVER = "1063379810@qq.com"          # 接收邮件的 QQ 邮箱
 
 # ==============================
 # 日志
@@ -41,8 +41,8 @@ logger = logging.getLogger(__name__)
 # 发送邮件核心函数
 # ==============================
 def send_email(subject, content):
-    if not MAIL_PASSWORD:
-        logger.error("❌ 没有找到 MAIL_PASSWORD 授权码环境变量")
+    if not MAIL_SENDER or not MAIL_PASSWORD:
+        logger.error("❌ 缺少 MAIL_SENDER 或 MAIL_PASSWORD 环境变量")
         return
 
     try:
